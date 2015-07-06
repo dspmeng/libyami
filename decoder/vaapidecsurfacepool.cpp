@@ -42,7 +42,6 @@ DecSurfacePoolPtr VaapiDecSurfacePool::create(const DisplayPtr& display, VideoCo
     size_t size = config->surfaceNumber;
     surfaces.reserve(size);
     assert(!(config->flag & WANT_SURFACE_PROTECTION));
-    assert(!(config->flag & USE_NATIVE_GRAPHIC_BUFFER));
     assert(!(config->flag & WANT_RAW_OUTPUT));
     for (size_t i = 0; i < size; ++i) {
         SurfacePtr s = VaapiSurface::create(display, VAAPI_CHROMA_TYPE_YUV420,

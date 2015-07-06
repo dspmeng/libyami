@@ -69,9 +69,6 @@ typedef enum {
     // indicates if buffer contains codec data
     HAS_CODECDATA = 0x1000,
 
-    // indicate if it use graphic buffer.
-    USE_NATIVE_GRAPHIC_BUFFER = 0x2000,
-
     // indicate whether it is a sync frame in container
     IS_SYNC_FRAME = 0x4000,
 
@@ -107,14 +104,7 @@ typedef struct {
     int32_t surfaceNumber;
     VAProfile profile;
     uint32_t flag;
-    uint32_t graphicBufferStride;
-    uint32_t graphicBufferColorFormat;
-    uint32_t graphicBufferWidth;
-    uint32_t graphicBufferHeight;
-    void *nativeWindow;
     uint32_t rotationDegrees;
-
-    void *parser_handle;
 }VideoConfigBuffer;
 
 typedef struct {
