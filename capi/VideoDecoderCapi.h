@@ -68,12 +68,6 @@ void decodeSetNativeDisplay(DecodeHandler p, NativeDisplay * display);
 
 void flushOutport(DecodeHandler p);
 
-void enableNativeBuffers(DecodeHandler p);
-
-Decode_Status getClientNativeWindowBuffer(DecodeHandler p, void *bufferHeader, void *nativeBufferHandle);
-
-Decode_Status flagNativeBuffer(DecodeHandler p, void * pBuffer);
-
 void releaseLock(DecodeHandler p);
 
 void releaseDecoder(DecodeHandler p);

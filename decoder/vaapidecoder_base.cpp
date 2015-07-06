@@ -50,7 +50,7 @@ m_renderTarget(NULL),
 m_lastReference(NULL),
 m_forwardReference(NULL),
 m_VAStarted(false),
-m_currentPTS(INVALID_PTS), m_enableNativeBuffersFlag(false)
+m_currentPTS(INVALID_PTS)
 {
     INFO("base: construct()");
     m_externalDisplay.handle = 0,
@@ -347,10 +347,6 @@ Decode_Status
 {
     INFO("base: setup VA");
 
-    if (m_enableNativeBuffersFlag == true) {
-        numSurface = 20;        //NATIVE_WINDOW_COUNT;
-    }
-
     if (m_VAStarted) {
         return DECODE_SUCCESS;
     }
@@ -435,23 +431,6 @@ void VaapiDecoderBase::setNativeDisplay(NativeDisplay * nativeDisplay)
         return;
 
     m_externalDisplay = *nativeDisplay;
-}
-
-/* not used funtion here */
-void VaapiDecoderBase::enableNativeBuffers(void)
-{
-}
-
-Decode_Status
-    VaapiDecoderBase::getClientNativeWindowBuffer(void *bufferHeader,
-                                                  void *nativeBufferHandle)
-{
-    return DECODE_SUCCESS;
-}
-
-Decode_Status VaapiDecoderBase::flagNativeBuffer(void *pBuffer)
-{
-    return DECODE_SUCCESS;
 }
 
 void VaapiDecoderBase::releaseLock(bool lockable)
