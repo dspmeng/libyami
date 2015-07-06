@@ -46,9 +46,6 @@ namespace YamiMediaCodec{
 typedef VaapiDecoderBase::PicturePtr PicturePtr;
 
 VaapiDecoderBase::VaapiDecoderBase():
-m_renderTarget(NULL),
-m_lastReference(NULL),
-m_forwardReference(NULL),
 m_VAStarted(false),
 m_currentPTS(INVALID_PTS)
 {
@@ -144,9 +141,6 @@ void VaapiDecoderBase::stop(void)
     terminateVA();
 
     m_currentPTS = INVALID_PTS;
-    m_renderTarget = NULL;
-    m_lastReference = NULL;
-    m_forwardReference = NULL;
 
     m_lowDelay = false;
     m_rawOutput = false;
@@ -163,9 +157,6 @@ void VaapiDecoderBase::flush(void)
     }
 
     m_currentPTS = INVALID_PTS;
-    m_renderTarget = NULL;
-    m_lastReference = NULL;
-    m_forwardReference = NULL;
 }
 
 void VaapiDecoderBase::flushOutport(void)
@@ -316,26 +307,6 @@ void VaapiDecoderBase::renderDone(VideoFrameRawData* frame)
         return;
     }
     m_surfacePool->recycle(frame);
-}
-
-Decode_Status VaapiDecoderBase::updateReference(void)
-{
-    // update reference frames
-    if (m_renderTarget->referenceFrame) {
-        // managing reference for MPEG4/H.263/WMV.
-        // AVC should manage reference frame in a different way
-        if (m_forwardReference != NULL) {
-            // this foward reference is no longer needed
-            m_forwardReference->asReferernce = false;
-        }
-        // Forware reference for either P or B frame prediction
-        m_forwardReference = m_lastReference;
-        m_renderTarget->asReferernce = true;
-
-        // the last reference frame.
-        m_lastReference = m_renderTarget;
-    }
-    return DECODE_SUCCESS;
 }
 
 Decode_Status

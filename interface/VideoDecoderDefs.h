@@ -113,16 +113,6 @@ typedef struct {
     int64_t timeStamp;          // presentation time stamp
 }VideoRenderBuffer;
 
-typedef struct SurfaceBuffer{
-    VideoRenderBuffer renderBuffer;
-    int32_t pictureOrder;       // picture order count, valid only for AVC format
-    bool referenceFrame;        // indicated whether frame associated with this surface is a reference I/P frame
-    bool asReferernce;          // indicated wheter frame is used as reference (as a result surface can not be used for decoding)
-    VideoFrameRawData *mappedData;
-    struct SurfaceBuffer *next;
-    uint32_t status;
-}VideoSurfaceBuffer;
-
 typedef struct {
     bool valid;                 // indicates whether format info is valid. MimeType is always valid.
     char *mimeType;
