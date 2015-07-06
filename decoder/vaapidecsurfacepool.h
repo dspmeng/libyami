@@ -70,7 +70,6 @@ public:
     /// get surface from output queue
     VideoRenderBuffer* getOutput();
     bool getOutput(VideoFrameRawData* frame);
-    bool populateOutputHandles(VideoFrameRawData *frames, uint32_t &frameCount);
     /// recycle to surface pool
     void recycle(const VideoRenderBuffer * renderBuf);
     /// recycle exported video frame to surface/image pool

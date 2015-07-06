@@ -302,16 +302,6 @@ Decode_Status VaapiDecoderBase::getOutput(VideoFrameRawData* frame, bool drainin
     return RENDER_SUCCESS;
 }
 
-Decode_Status VaapiDecoderBase::populateOutputHandles(VideoFrameRawData *frames, uint32_t &frameCount)
-{
-    if (!m_surfacePool)
-        return RENDER_NO_AVAILABLE_FRAME;
-
-    if (!m_surfacePool->populateOutputHandles(frames, frameCount))
-        return RENDER_NO_AVAILABLE_FRAME;
-    return RENDER_SUCCESS;
-}
-
 void VaapiDecoderBase::renderDone(const VideoRenderBuffer * renderBuf)
 {
     INFO("base: renderDone()");
