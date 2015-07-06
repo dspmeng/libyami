@@ -30,12 +30,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-// format specific data, for future extension.
-typedef struct {
-    int32_t extType;
-    int32_t extSize;
-    uint8_t *extData;
-}VideoExtensionBuffer;
 
 typedef enum {
     PACKED_FRAME_TYPE,
@@ -106,7 +100,6 @@ typedef struct {
     int32_t size;
     int64_t timeStamp;
     uint32_t flag;
-    VideoExtensionBuffer *ext;
 }VideoDecodeBuffer;
 
 
@@ -131,7 +124,6 @@ typedef struct {
     uint32_t graphicBufferColorFormat;
     uint32_t graphicBufferWidth;
     uint32_t graphicBufferHeight;
-    VideoExtensionBuffer *ext;
     void *nativeWindow;
     uint32_t rotationDegrees;
 
@@ -174,7 +166,6 @@ typedef struct {
     int32_t bitrate;
     int32_t framerateNom;
     int32_t framerateDenom;
-    VideoExtensionBuffer *ext;
 }VideoFormatInfo;
 
 // TODO: categorize the follow errors as fatal and non-fatal.
