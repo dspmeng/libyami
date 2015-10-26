@@ -29,6 +29,7 @@
 #include <tr1/memory>
 namespace YamiMediaCodec{
 //use tr1's shared_ptr until we implemented ours.
+#define WeakPtr std::tr1::weak_ptr
 #define SharedPtr std::tr1::shared_ptr
 #define EnableSharedFromThis std::tr1::enable_shared_from_this
 #define SharedFromThis shared_from_this
