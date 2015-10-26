@@ -267,6 +267,19 @@ fi
 AM_CONDITIONAL(BUILD_GET_MV,
     [test "x$enable_getmv" = "xyes"])
 
+dnl ocl blender
+AC_ARG_ENABLE(oclblender,
+    [AC_HELP_STRING([--enable-oclblender],
+        [build with opencl based alpah blender])],
+    [], [enable_oclblender="auto"])
+if test "x$enable_oclblender" = "xauto"; then
+    AC_PREPROC_IFELSE(
+        [AC_LANG_PROGRAM([#include <CL/opencl.h>],[])],
+        [enable_oclblender="yes"],[enable_oclblender="no"])
+fi
+AM_CONDITIONAL(BUILD_OCL_BLENDER,
+    [test "x$enable_oclblender" = "xyes"])
+
 
 # dnl Doxygen
 AC_ARG_ENABLE(docs,
@@ -418,11 +431,15 @@ AS_IF([test x$enable_h264enc = xyes], [ENCODERS="$ENCODERS h264"])
 AS_IF([test x$enable_jpegenc = xyes], [ENCODERS="$ENCODERS jpeg"])
 AS_IF([test x$enable_vp8enc = xyes], [ENCODERS="$ENCODERS vp8"])
 
+VPPS=" scaler"
+AS_IF([test x$enable_oclblender = xyes], [VPPS="$VPPS oclblender"])
+
 AC_MSG_RESULT([
     libyami - libyami_version
 
     Build decoders ................... :$DECODERS
     Build encoders ....................:$ENCODERS
+    Build vpps ........................:$VPPS
     Build documentation .............. : $enable_docs
     Enable debug ......................: $enable_debug
     Installation prefix .............. : $prefix
