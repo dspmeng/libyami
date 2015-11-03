@@ -36,7 +36,8 @@ public:
     virtual ~VppInputDecode() {}
 private:
     SharedPtr<IVideoDecoder> m_decoder;
-    SharedPtr<DecodeInput> m_input;
+    SharedPtr<DecodeInput>   m_input;
+    SharedPtr<VideoFrame>    m_first;
 };
 #endif //vppinputdecode_h
 
