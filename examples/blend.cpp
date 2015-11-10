@@ -254,7 +254,7 @@ private:
         nativeDisplay.type = NATIVE_DISPLAY_VA;
         nativeDisplay.handle = (intptr_t)m_vaDisplay;
         m_scaler.reset(createVideoPostProcess(YAMI_VPP_SCALER), releaseVideoPostProcess);
-        m_blender.reset(createVideoPostProcess(YAMI_VPP_SCALER), releaseVideoPostProcess);
+        m_blender.reset(createVideoPostProcess(YAMI_VPP_OCL_BLENDER), releaseVideoPostProcess);
         if (!m_scaler || !m_blender)
             return false;
         return m_scaler->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS
