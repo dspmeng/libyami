@@ -63,6 +63,8 @@ extern "C" {
         ((uint32_t)(uint8_t)(ch0) | ((uint32_t)(uint8_t)(ch1) << 8) | \
          ((uint32_t)(uint8_t)(ch2) << 16)  | ((uint32_t)(uint8_t)(ch3) << 24))
 
+#define YAMI_FOURCC_NV12 YAMI_FOURCC('N','V','1','2')
+
 typedef enum {
     NATIVE_DISPLAY_AUTO,    // decided by yami
     NATIVE_DISPLAY_X11,
@@ -114,6 +116,29 @@ typedef enum {
     YAMI_NO_CONFIG,
     YAMI_DRIVER_FAIL,
 } YamiStatus;
+
+typedef struct {
+    //in
+    uint32_t fourcc;
+    uint32_t width;
+    uint32_t height;
+
+    //in, out, number of surfaces
+    uint32_t size;
+
+    //out
+    intptr_t* surfaces;
+} SurfaceAllocParams;
+
+//allocator for surfaces, yami uses this to get
+// 1. decoded surface for decoder.
+// 2. reconstruct surface for encoder.
+typedef struct
+{
+    void* user;
+    YamiStatus (*alloc)(void* user, SurfaceAllocParams* params);
+    YamiStatus (*free) (void* user, SurfaceAllocParams* params);
+} SurfaceAllocator;
 
 typedef struct VideoRect
 {
