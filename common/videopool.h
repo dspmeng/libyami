@@ -20,7 +20,7 @@
  */
 #ifndef videopool_h
 #define videopool_h
-#include "VideoCommonDefs.h"
+#include "interface/VideoCommonDefs.h"
 #include "common/lock.h"
 #include <deque>
 
