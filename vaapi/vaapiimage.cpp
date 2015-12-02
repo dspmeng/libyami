@@ -39,10 +39,13 @@ namespace YamiMediaCodec{
 
 ImageRawPtr VaapiImageRaw::create(const DisplayPtr& display, const ImagePtr& image, VideoDataMemoryType memoryType)
 {
+
     ImageRawPtr raw;
+    return raw;
+#if 0
     RealeaseCallback release;
     uintptr_t handle;
-    VAStatus status;
+    //    VAStatus status;
     VAImagePtr& vaImage = image->m_image;
     if (memoryType == VIDEO_DATA_MEMORY_TYPE_RAW_POINTER || memoryType == VIDEO_DATA_MEMORY_TYPE_RAW_COPY) {
         void* data;
@@ -50,7 +53,7 @@ ImageRawPtr VaapiImageRaw::create(const DisplayPtr& display, const ImagePtr& ima
         release = vaUnmapBuffer;
         handle = (uintptr_t)data;
     } else {
-        VABufferInfo bufferInfo;
+        /*        VABufferInfo bufferInfo;
         if (memoryType == VIDEO_DATA_MEMORY_TYPE_DRM_NAME)
             bufferInfo.mem_type = VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM;
         else if (memoryType == VIDEO_DATA_MEMORY_TYPE_DMA_BUF)
@@ -61,11 +64,13 @@ ImageRawPtr VaapiImageRaw::create(const DisplayPtr& display, const ImagePtr& ima
         status = vaAcquireBufferHandle(display->getID(), vaImage->buf, &bufferInfo);
         release = vaReleaseBufferHandle;
         handle = (uintptr_t)bufferInfo.handle;
+        */
     }
     if (!checkVaapiStatus(status, "VaapiImageRaw::create()"))
         return raw;
     raw.reset(new VaapiImageRaw(display, image, memoryType, handle, release));
     return raw;
+#endif
 }
 
 VaapiImageRaw::VaapiImageRaw(const DisplayPtr& display, const ImagePtr& image,
