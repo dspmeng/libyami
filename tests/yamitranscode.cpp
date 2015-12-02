@@ -160,8 +160,9 @@ public:
 #else
             dest = src;
 #endif
-            if(!m_output->output(dest))
+            if(!m_output->output(dest)) {
                 break;
+            }
             count++;
             if(count >= m_cmdParam.frameCount)
                 break;

@@ -88,11 +88,13 @@ public:
     bool setFormat(uint32_t fourcc, int width, int height)
     {
         m_surfaces.resize(m_poolsize);
+#if 0
         VASurfaceAttrib attrib;
         attrib.flags = VA_SURFACE_ATTRIB_SETTABLE;
         attrib.type = VASurfaceAttribPixelFormat;
         attrib.value.type = VAGenericValueTypeInteger;
         attrib.value.value.i = fourcc;
+#endif
         uint32_t rtformat;
         if (fourcc == VA_FOURCC_BGRX
             || fourcc == VA_FOURCC_BGRA) {
@@ -101,8 +103,12 @@ public:
         } else {
             rtformat = VA_RT_FORMAT_YUV420;
         }
-        VAStatus status = vaCreateSurfaces(*m_display, rtformat, width, height,
-                                           &m_surfaces[0], m_surfaces.size(),&attrib, 1);
+        VAStatus status = vaCreateSurfaces(*m_display, rtformat, width, height, &m_surfaces[0], m_surfaces.size(),
+#if 0
+                                           &attrib, 1);
+#else
+                                           NULL, 0);
+#endif
         if (status != VA_STATUS_SUCCESS) {
             ERROR("create surface failed fourcc = %d", fourcc);
             m_surfaces.clear();

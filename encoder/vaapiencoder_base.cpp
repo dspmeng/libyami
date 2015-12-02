@@ -263,13 +263,15 @@ Encode_Status VaapiEncoderBase::getMVBufferSize(uint32_t *Size)
 
 SurfacePtr VaapiEncoderBase::createNewSurface(uint32_t fourcc)
 {
-    VASurfaceAttrib attrib;
-    VaapiChromaType chroma;
 
+    VaapiChromaType chroma;
+#if 0
+    VASurfaceAttrib attrib;
     attrib.flags = VA_SURFACE_ATTRIB_SETTABLE;
     attrib.type = VASurfaceAttribPixelFormat;
     attrib.value.type = VAGenericValueTypeInteger;
     attrib.value.value.i = fourcc;
+#endif
 
     switch(fourcc) {
     case VA_FOURCC_NV12:
@@ -284,7 +286,12 @@ SurfacePtr VaapiEncoderBase::createNewSurface(uint32_t fourcc)
         break;
     }
     return VaapiSurface::create(m_display, chroma,
-                                m_videoParamCommon.resolution.width, m_videoParamCommon.resolution.height, &attrib, 1);
+                                m_videoParamCommon.resolution.width, m_videoParamCommon.resolution.height, 
+#if 0
+                                &attrib, 1);
+#else
+                                NULL, 0);
+#endif
 
 }
 
@@ -402,8 +409,10 @@ const ProfileMapItem g_profileMap[] =
     {VAAPI_PROFILE_H264_MAIN, VAProfileH264Main},
     {VAAPI_PROFILE_H264_HIGH,VAProfileH264High},
     {VAAPI_PROFILE_JPEG_BASELINE,VAProfileJPEGBaseline},
+#if 0
     {VAAPI_PROFILE_HEVC_MAIN, VAProfileHEVCMain},
     {VAAPI_PROFILE_HEVC_MAIN10, VAProfileHEVCMain10},
+#endif
 };
 
 VaapiProfile VaapiEncoderBase::profile() const
