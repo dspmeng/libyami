@@ -1060,10 +1060,6 @@ bool  VaapiEncoderH264::pictureReferenceListSet (
 {
     uint32_t i;
 
-    /* reset reflist0 and reflist1 every time  */
-    m_refList0.clear();
-    m_refList1.clear();
-
     for (i = 0; i < m_refList.size(); i++) {
         assert(picture->m_poc != m_refList[i]->m_poc);
         if (picture->m_poc > m_refList[i]->m_poc)
@@ -1315,6 +1311,10 @@ bool VaapiEncoderH264::ensureSequence(const PicturePtr& picture)
 bool VaapiEncoderH264::ensurePicture (const PicturePtr& picture, const SurfacePtr& surface)
 {
     VAEncPictureParameterBufferH264 *picParam;
+
+    /* reset reflist0 and reflist1 every time  */
+    m_refList0.clear();
+    m_refList1.clear();
 
     if (picture->m_type != VAAPI_PICTURE_TYPE_I &&
             !pictureReferenceListSet(picture)) {
