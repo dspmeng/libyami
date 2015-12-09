@@ -67,12 +67,12 @@ VaapiPostProcessScaler::process(const SharedPtr<VideoFrame>& src,
     if (fillRect(srcCrop, src->crop))
         vppParam->surface_region = &srcCrop;
     vppParam->surface = (VASurfaceID)src->surface;
-    vppParam->surface_color_standard = VAProcColorStandardNone;
+    vppParam->surface_color_standard = VAProcColorStandardBT601;
 
     if (fillRect(destCrop, dest->crop))
         vppParam->output_region = &destCrop;
     vppParam->output_background_color = 0xff000000;
-    vppParam->output_color_standard = VAProcColorStandardNone;
+    vppParam->output_color_standard = VAProcColorStandardBT601;
     return picture.process() ? YAMI_SUCCESS : YAMI_FAIL;
 }
 
