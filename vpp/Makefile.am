@@ -48,7 +48,7 @@ libyami_vpp_ldflags = \
         $(LIBYAMI_LT_LDFLAGS) \
         $(LIBVA_LIBS) \
         $(LIBVA_DRM_LIBS) \
-        -ldl                 \
+        -ldl \
         $(NULL)
 
 libyami_vpp_cppflags = \
@@ -57,7 +57,11 @@ libyami_vpp_cppflags = \
         $(NULL)
 
 if BUILD_OCL_BLENDER
-        libyami_vpp_ldflags += -lOpenCL
+        libyami_vpp_ldflags += \
+                -lOpenCL \
+                -L/usr/local/lib/x86_64-linux-gnu/beignet \
+                -lcl \
+                $(NULL)
 endif
 
 lib_LTLIBRARIES             = libyami_vpp.la
