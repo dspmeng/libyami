@@ -45,8 +45,9 @@ OclPostProcessBlender::blend(const SharedPtr<VideoFrame>& src,
     cl_mem bg_cl_mem_y = NULL, bg_cl_mem_uv = NULL;
     cl_import_image_info_intel import_info;
     size_t global_work_size[2], local_work_size[2];
-    uint32_t crop_x, crop_y, crop_w, crop_h;
+    int32_t crop_x, crop_y, crop_w, crop_h;
     uint32_t element_size;
+    int32_t padding;
 
     VASurfaceID src_id = (VASurfaceID)src->surface;
     VASurfaceID dst_id = (VASurfaceID)dst->surface;
@@ -99,10 +100,10 @@ OclPostProcessBlender::blend(const SharedPtr<VideoFrame>& src,
         goto err_cl;
     }
 
-    element_size = 2;
+    element_size = 4;
     import_info.fd = dst_info.handle;
     import_info.type = CL_MEM_OBJECT_IMAGE2D;
-    import_info.fmt.image_channel_order = CL_RG;
+    import_info.fmt.image_channel_order = CL_RGBA;
     import_info.fmt.image_channel_data_type = CL_UNORM_INT8;
     import_info.row_pitch = dst_image.pitches[0];
     import_info.offset = dst_image.offsets[0];
@@ -124,7 +125,7 @@ OclPostProcessBlender::blend(const SharedPtr<VideoFrame>& src,
 
     import_info.fd = dst_info.handle;
     import_info.type = CL_MEM_OBJECT_IMAGE2D;
-    import_info.fmt.image_channel_order = CL_RG;
+    import_info.fmt.image_channel_order = CL_RGBA;
     import_info.fmt.image_channel_data_type = CL_UNORM_INT8;
     import_info.row_pitch = dst_image.pitches[1];
     import_info.offset = dst_image.offsets[1];
@@ -144,29 +145,31 @@ OclPostProcessBlender::blend(const SharedPtr<VideoFrame>& src,
         goto err_cl;
     }
 
+    padding = dst.get()->crop.x % element_size;
     crop_x = dst.get()->crop.x / element_size;
     crop_y = dst.get()->crop.y & ~1;
-    crop_w = dst.get()->crop.width / element_size;
+    crop_w = dst.get()->crop.width;
     crop_h = dst.get()->crop.height;
     if ((cl_status = clSetKernelArg(m_kernel, 0, sizeof(cl_mem), &dst_cl_mem_y))  ||
         (cl_status = clSetKernelArg(m_kernel, 1, sizeof(cl_mem), &dst_cl_mem_uv)) ||
         (cl_status = clSetKernelArg(m_kernel, 2, sizeof(cl_mem), &bg_cl_mem_y))   ||
         (cl_status = clSetKernelArg(m_kernel, 3, sizeof(cl_mem), &bg_cl_mem_uv))  ||
         (cl_status = clSetKernelArg(m_kernel, 4, sizeof(cl_mem), &src_cl_mem))    ||
-        (cl_status = clSetKernelArg(m_kernel, 5, sizeof(uint32_t), &crop_x))   ||
-        (cl_status = clSetKernelArg(m_kernel, 6, sizeof(uint32_t), &crop_y))   ||
-        (cl_status = clSetKernelArg(m_kernel, 7, sizeof(uint32_t), &crop_w)) ||
-        (cl_status = clSetKernelArg(m_kernel, 8, sizeof(uint32_t), &crop_h))) {
+        (cl_status = clSetKernelArg(m_kernel, 5, sizeof(int32_t), &padding))     ||
+        (cl_status = clSetKernelArg(m_kernel, 6, sizeof(int32_t), &crop_x))   ||
+        (cl_status = clSetKernelArg(m_kernel, 7, sizeof(int32_t), &crop_y))   ||
+        (cl_status = clSetKernelArg(m_kernel, 8, sizeof(int32_t), &crop_w)) ||
+        (cl_status = clSetKernelArg(m_kernel, 9, sizeof(int32_t), &crop_h))) {
         ERROR("clSetKernelArg failed with %d\n", cl_status);
         ret = YAMI_FAIL;
         goto err_cl;
     }
 
-    // each work group has 8x8 work items; each work item handles 2x2 pixels
+    // each work group has 8x8 work items; each work item handles 4x2 pixels
     local_work_size[0] = 8;
     local_work_size[1] = 8;
-    global_work_size[0] = ALIGN16(dst.get()->crop.width) / element_size;
-    global_work_size[1] = ALIGN16(dst.get()->crop.height) / 2;
+    global_work_size[0] = ALIGN_POW2(dst.get()->crop.width + padding, local_work_size[0] * element_size) / element_size;
+    global_work_size[1] = ALIGN_POW2(dst.get()->crop.height, local_work_size[1] * 2) / 2;
     cl_status = clEnqueueNDRangeKernel(cmd_q, m_kernel, 2, NULL, global_work_size, local_work_size, 0, NULL, NULL);
     if (cl_status != CL_SUCCESS) {
         printf("clEnqueueNDRangeKernel failed with %d\n", cl_status);
