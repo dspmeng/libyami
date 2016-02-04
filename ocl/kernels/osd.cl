@@ -24,6 +24,24 @@
 #define CELL_WIDTH 2
 #define CELL_HEIGHT 2
 
+__kernel void reduce_luma(__read_only image2d_t img_y,
+                          int crop_x,
+                          int crop_y,
+                          int crop_h,
+                          __global uint *acc)
+{
+    sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
+    size_t g_id = crop_x + get_global_id(0);
+    uint4 Y = (uint4)(0, 0, 0, 0);
+
+    int i;
+    for (i = 0; i < crop_h; i++) {
+        Y += read_imageui(img_y, sampler, (int2)(g_id, crop_y + i));
+    }
+
+    *((__global uint4 *)acc + get_global_id(0)) = Y;
+}
+
 __kernel void osd(__write_only image2d_t img_y_dst,
                   __write_only image2d_t img_uv_dst,
                   __read_only image2d_t img_y,

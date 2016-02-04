@@ -54,13 +54,14 @@ public:
           m_threshold(128) {}
 
 private:
-    void computeBlockLuma(const SharedPtr<VideoFrame>frame);
+    YamiStatus computeBlockLuma(const SharedPtr<VideoFrame>frame);
 
     static const bool s_registered; // VaapiPostProcessFactory registration result
     int m_blockWidth;
     int m_blockCount;
     uint32_t m_threshold;
     vector<float> m_osdLuma;
+    vector<uint32_t> m_lineBuf;
 };
 
 }
