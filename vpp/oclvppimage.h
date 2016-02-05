@@ -87,5 +87,14 @@ private:
     SharedPtr<OclContext> m_context;
     const cl_image_format& m_fmt;
 };
+
+class OclMemDeleter {
+public:
+    void operator()(cl_mem* mem)
+    {
+        checkOclStatus(clReleaseMemObject(*mem), "ReleaseMemObject");
+        delete mem;
+    }
+};
 }
 #endif                          /* oclvppimage_h */
