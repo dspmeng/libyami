@@ -44,7 +44,7 @@
 struct timespec start, end;
 #define PERF_START(block) clock_gettime(CLOCK_REALTIME, &start);
 #define PERF_STOP(block) clock_gettime(CLOCK_REALTIME, &end);      \
-                         INFO(#block " used %f ms\n",            \
+                         ERROR(#block " used %f ms\n",            \
                              (end.tv_sec - start.tv_sec) * 1000    \
                            + (end.tv_nsec - start.tv_nsec) / 1E6);
 
@@ -114,6 +114,7 @@ public:
             m_scaler->process(frame, m_dest);
 
             PERF_START(blend);
+#if 0
             //blend it
             for (uint32_t i = 0; i < m_blendSurfaces.size(); i++) {
                 m_blendBumpBoxes[i]->getPos(m_dest->crop.x, m_dest->crop.y, m_dest->crop.width, m_dest->crop.height);
@@ -134,6 +135,20 @@ public:
                 m_osd->process(src, m_dest);
             }
             PERF_STOP(osd);
+#endif
+            PERF_START(mosaic);
+            //mosaic
+            for (uint32_t i = 0; i < 1; i++) {
+                m_blendBumpBoxes[i]->getPos(m_dest->crop.x, m_dest->crop.y, m_dest->crop.width, m_dest->crop.height);
+                //printf("(%d, %d, %d, %d)\r\n", m_dest->crop.x, m_dest->crop.y, m_dest->crop.width, m_dest->crop.height);
+m_dest->crop.x = 0;
+m_dest->crop.y = 0;
+m_dest->crop.width = 1920;
+m_dest->crop.height = 1080;
+                SharedPtr<VideoFrame>& src = m_blendSurfaces[i];
+                m_mosaic->process(src, m_dest);
+            }
+            PERF_STOP(mosaic);
 
             //display it on screen
             memcpy(&m_dest->crop, &frame->crop, sizeof(VideoRect));
@@ -144,6 +159,7 @@ public:
                 ERROR("vaPutSurface return %d", status);
                 break;
             }
+usleep(3000000);
         }
         return true;
     }
@@ -310,12 +326,14 @@ private:
         m_scaler.reset(createVideoPostProcess(YAMI_VPP_SCALER), releaseVideoPostProcess);
         m_blender.reset(createVideoPostProcess(YAMI_VPP_OCL_BLENDER), releaseVideoPostProcess);
         m_osd.reset(createVideoPostProcess(YAMI_VPP_OCL_OSD), releaseVideoPostProcess);
-        if (!m_scaler || !m_blender || !m_osd)
+        m_mosaic.reset(createVideoPostProcess(YAMI_VPP_OCL_MOSAIC), releaseVideoPostProcess);
+        if (!m_scaler || !m_blender || !m_osd || !m_mosaic)
             return false;
         dynamic_cast<OclPostProcessOsd *>(m_osd.get())->setBlockWidth(FONT_BLOCK_SIZE);
         return m_scaler->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS
             && m_blender->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS
-            && m_osd->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS;
+            && m_osd->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS
+            && m_mosaic->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS;
     }
 
     void resizeWindow(int width, int height)
@@ -350,6 +368,7 @@ private:
     SharedPtr<IVideoPostProcess> m_scaler;
     SharedPtr<IVideoPostProcess> m_blender;
     SharedPtr<IVideoPostProcess> m_osd;
+    SharedPtr<IVideoPostProcess> m_mosaic;
     int m_width, m_height;
     vector<SharedPtr<VideoFrame> > m_blendSurfaces;
     vector<SharedPtr<BumpBox> > m_blendBumpBoxes;
