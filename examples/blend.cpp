@@ -99,6 +99,8 @@ public:
             return false;
         if (!createOSDSurfaces(width, height))
             return false;
+        if (!createMosaicSurfaces(width, height))
+            return false;
         if (!createDestSurface(width, height))
             return false;
         resizeWindow(960, 540);
@@ -114,7 +116,6 @@ public:
             m_scaler->process(frame, m_dest);
 
             PERF_START(blend);
-#if 0
             //blend it
             for (uint32_t i = 0; i < m_blendSurfaces.size(); i++) {
                 m_blendBumpBoxes[i]->getPos(m_dest->crop.x, m_dest->crop.y, m_dest->crop.width, m_dest->crop.height);
@@ -135,17 +136,14 @@ public:
                 m_osd->process(src, m_dest);
             }
             PERF_STOP(osd);
-#endif
+
             PERF_START(mosaic);
             //mosaic
-            for (uint32_t i = 0; i < 1; i++) {
-                m_blendBumpBoxes[i]->getPos(m_dest->crop.x, m_dest->crop.y, m_dest->crop.width, m_dest->crop.height);
+            for (uint32_t i = 0; i < m_mosaicSurfaces.size(); i++) {
+                m_mosaicBumpBoxes[i]->getPos(m_dest->crop.x, m_dest->crop.y, m_dest->crop.width, m_dest->crop.height);
                 //printf("(%d, %d, %d, %d)\r\n", m_dest->crop.x, m_dest->crop.y, m_dest->crop.width, m_dest->crop.height);
-m_dest->crop.x = 0;
-m_dest->crop.y = 0;
-m_dest->crop.width = 1920;
-m_dest->crop.height = 1080;
-                SharedPtr<VideoFrame>& src = m_blendSurfaces[i];
+
+                SharedPtr<VideoFrame>& src = m_mosaicSurfaces[i];
                 m_mosaic->process(src, m_dest);
             }
             PERF_STOP(mosaic);
@@ -159,7 +157,6 @@ m_dest->crop.height = 1080;
                 ERROR("vaPutSurface return %d", status);
                 break;
             }
-usleep(3000000);
         }
         return true;
     }
@@ -311,6 +308,25 @@ private:
 
     }
 
+    bool createMosaicSurfaces(uint32_t targetWidth, uint32_t targetHeight)
+    {
+        uint32_t maxWidth = targetWidth / 2;
+        uint32_t maxHeight = targetHeight / 2;
+        for (int i = 0; i < 1; i++) {
+            int w = maxWidth;
+            int h = maxHeight;
+            SharedPtr<VideoFrame> frame = createSurface(VA_RT_FORMAT_RGB32, VA_FOURCC_RGBA, w, h);
+            if (!frame)
+                return false;
+            drawSurfaceRGBA(frame);
+            m_mosaicSurfaces.push_back(frame);
+            SharedPtr<BumpBox> box(new BumpBox(targetWidth, targetHeight, w, h));
+            m_mosaicBumpBoxes.push_back(box);
+        }
+        return true;
+
+    }
+
     bool createDestSurface(uint32_t targetWidth, uint32_t targetHeight)
     {
         m_dest = createSurface(VA_RT_FORMAT_YUV420, VA_FOURCC_NV12, targetWidth, targetHeight);
@@ -374,6 +390,8 @@ private:
     vector<SharedPtr<BumpBox> > m_blendBumpBoxes;
     vector<SharedPtr<VideoFrame> > m_osdSurfaces;
     vector<SharedPtr<BumpBox> > m_osdBumpBoxes;
+    vector<SharedPtr<VideoFrame> > m_mosaicSurfaces;
+    vector<SharedPtr<BumpBox> > m_mosaicBumpBoxes;
     SharedPtr<VideoFrame> m_dest;
 };
 

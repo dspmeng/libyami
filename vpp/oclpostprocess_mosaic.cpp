@@ -42,7 +42,7 @@ OclPostProcessMosaic::process(const SharedPtr<VideoFrame>& src,
 
     cl_image_format format;
     format.image_channel_order = CL_R;
-    format.image_channel_data_type = CL_UNSIGNED_INT8;
+    format.image_channel_data_type = CL_UNORM_INT8;
     SharedPtr<OclVppCLImage> imagePtr;
     imagePtr.reset(new OclVppCLImage(dst, m_display, m_context, format));
     if (!imagePtr->numPlanes()) {
@@ -54,6 +54,13 @@ OclPostProcessMosaic::process(const SharedPtr<VideoFrame>& src,
     for (uint32_t n = 0; n < imagePtr->numPlanes(); n++) {
         bgImageMem[n] = imagePtr->plane(n);
     }
+
+    size_t globalWorkSize[2], localWorkSize[2];
+    localWorkSize[0] = 256 / m_blockSize * m_blockSize;
+    localWorkSize[1] = 1;
+    globalWorkSize[0] = (dst->crop.width / localWorkSize[0] + 1) * localWorkSize[0];
+    globalWorkSize[1] = dst->crop.height / m_blockSize + 1;
+    size_t localMemSize = localWorkSize[0] * sizeof(float);
 
     cl_kernel kernel = getKernel("mosaic");
     if (!kernel) {
@@ -67,16 +74,12 @@ OclPostProcessMosaic::process(const SharedPtr<VideoFrame>& src,
         (CL_SUCCESS != clSetKernelArg(kernel, 4, sizeof(uint32_t), &dst->crop.x))      ||
         (CL_SUCCESS != clSetKernelArg(kernel, 5, sizeof(uint32_t), &dst->crop.y))      ||
         (CL_SUCCESS != clSetKernelArg(kernel, 6, sizeof(cl_mem), NULL/*&mask*/))       ||
-        (CL_SUCCESS != clSetKernelArg(kernel, 7, sizeof(uint32_t), &m_blockSize))) {
+        (CL_SUCCESS != clSetKernelArg(kernel, 7, sizeof(uint32_t), &m_blockSize))      ||
+        (CL_SUCCESS != clSetKernelArg(kernel, 8, localMemSize, NULL))) {
         ERROR("clSetKernelArg failed");
         return YAMI_FAIL;
     }
 
-    size_t globalWorkSize[2], localWorkSize[2];
-    localWorkSize[0] = 64;
-    localWorkSize[1] = 1;
-    globalWorkSize[0] = ALIGN_POW2(dst->crop.width, localWorkSize[0]);
-    globalWorkSize[1] = dst->crop.height / m_blockSize + 1;
     if (!checkOclStatus(clEnqueueNDRangeKernel(m_context->m_queue, kernel, 2, NULL,
         globalWorkSize, localWorkSize, 0, NULL, NULL), "EnqueueNDRangeKernel")) {
         return YAMI_FAIL;
