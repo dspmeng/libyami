@@ -44,7 +44,7 @@
 struct timespec start, end;
 #define PERF_START(block) clock_gettime(CLOCK_REALTIME, &start);
 #define PERF_STOP(block) clock_gettime(CLOCK_REALTIME, &end);      \
-                         INFO(#block " used %f ms\n",            \
+                         ERROR(#block " used %f ms\n",            \
                              (end.tv_sec - start.tv_sec) * 1000    \
                            + (end.tv_nsec - start.tv_nsec) / 1E6);
 
@@ -105,6 +105,8 @@ public:
             return false;
         if (!createDestSurface(width, height))
             return false;
+        if (!createDisplaySurface(width, height))
+            return false;
         resizeWindow(960, 540);
         return true;
     }
@@ -139,10 +141,14 @@ public:
             }
             PERF_STOP(osd);
 
+            PERF_START(transform);
+            m_transform->process(m_dest, m_displaySurface);
+            PERF_STOP(transform);
+
             //display it on screen
-            memcpy(&m_dest->crop, &frame->crop, sizeof(VideoRect));
-            status = vaPutSurface(*m_vaDisplay, (VASurfaceID)m_dest->surface,
-                m_window, m_dest->crop.x, m_dest->crop.y, m_dest->crop.width, m_dest->crop.height, 0, 0, m_width, m_height,
+            memcpy(&m_displaySurface->crop, &frame->crop, sizeof(VideoRect));
+            status = vaPutSurface(*m_vaDisplay, (VASurfaceID)m_displaySurface->surface,
+                m_window, m_displaySurface->crop.x, m_displaySurface->crop.y, m_displaySurface->crop.width, m_displaySurface->crop.height, 0, 0, m_width, m_height,
                 NULL, 0, 0);
             if (status != VA_STATUS_SUCCESS) {
                 ERROR("vaPutSurface return %d", status);
@@ -306,6 +312,13 @@ private:
         return m_dest;
     }
 
+    bool createDisplaySurface(uint32_t targetWidth, uint32_t targetHeight)
+    {
+        m_displaySurface = createSurface(VA_RT_FORMAT_YUV420, VA_FOURCC_NV12, targetWidth, targetHeight);
+        m_displaySurface->fourcc = YAMI_FOURCC_NV12;
+        return m_displaySurface;
+    }
+
     bool createVpp()
     {
         NativeDisplay nativeDisplay;
@@ -314,15 +327,25 @@ private:
         m_scaler.reset(createVideoPostProcess(YAMI_VPP_SCALER), releaseVideoPostProcess);
         m_blender.reset(createVideoPostProcess(YAMI_VPP_OCL_BLENDER), releaseVideoPostProcess);
         m_osd.reset(createVideoPostProcess(YAMI_VPP_OCL_OSD), releaseVideoPostProcess);
-        if (!m_scaler || !m_blender || !m_osd)
+        m_transform.reset(createVideoPostProcess(YAMI_VPP_OCL_TRANSFORM), releaseVideoPostProcess);
+        if (!m_scaler || !m_blender || !m_osd || !m_transform)
             return false;
+
         VppParamOsd osdParam;
+        osdParam.size = sizeof(VppParamOsd);
         osdParam.blockWidth = FONT_BLOCK_SIZE;
         osdParam.threshold = 128;
         m_osd->setParameters(VppParamTypeOsd, &osdParam);
+
+        VppParamTransform transformParam;
+        transformParam.size = sizeof(VppParamTransform);
+        transformParam.transform = VPP_TRANSFORM_ROT_180;
+        m_transform->setParameters(VppParamTypeTransform, &transformParam);
+
         return m_scaler->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS
             && m_blender->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS
-            && m_osd->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS;
+            && m_osd->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS
+            && m_transform->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS;
     }
 
     void resizeWindow(int width, int height)
@@ -357,12 +380,14 @@ private:
     SharedPtr<IVideoPostProcess> m_scaler;
     SharedPtr<IVideoPostProcess> m_blender;
     SharedPtr<IVideoPostProcess> m_osd;
+    SharedPtr<IVideoPostProcess> m_transform;
     int m_width, m_height;
     vector<SharedPtr<VideoFrame> > m_blendSurfaces;
     vector<SharedPtr<BumpBox> > m_blendBumpBoxes;
     vector<SharedPtr<VideoFrame> > m_osdSurfaces;
     vector<SharedPtr<BumpBox> > m_osdBumpBoxes;
     SharedPtr<VideoFrame> m_dest;
+    SharedPtr<VideoFrame> m_displaySurface;
 };
 
 int main(int argc, char** argv)

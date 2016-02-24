@@ -29,6 +29,7 @@ extern "C" {
 
 typedef enum {
     VppParamTypeOsd,
+    VppParamTypeTransform,
 }VppParamType;
 
 typedef struct VppParamOsd {
@@ -36,6 +37,19 @@ typedef struct VppParamOsd {
     uint32_t blockWidth;
     uint32_t threshold;
 }VppParamOsd;
+
+typedef enum {
+    VPP_TRANSFORM_FLIP_H  = 0x1,
+    VPP_TRANSFORM_FLIP_V  = 0x2,
+    VPP_TRANSFORM_ROT_90  = 0x4,
+    VPP_TRANSFORM_ROT_180 = 0x8,
+    VPP_TRANSFORM_ROT_270 = 0x10,
+}VppTransform;
+
+typedef struct VppParamTransform {
+    size_t size;
+    uint32_t transform;
+}VppParamTransform;
 
 #ifdef __cplusplus
 }
