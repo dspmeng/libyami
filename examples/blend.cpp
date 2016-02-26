@@ -105,9 +105,10 @@ public:
             return false;
         if (!createDestSurface(width, height))
             return false;
-        if (!createDisplaySurface(width, height))
+        if (!createDisplaySurface(height, width))
             return false;
-        resizeWindow(960, 540);
+        resizeWindow(540, 960);
+
         return true;
     }
     bool run()
@@ -142,11 +143,15 @@ public:
             PERF_STOP(osd);
 
             PERF_START(transform);
+            memcpy(&m_dest->crop, &frame->crop, sizeof(VideoRect));
+            m_displaySurface->crop.x = m_dest->crop.y;
+            m_displaySurface->crop.y = m_dest->crop.x;
+            m_displaySurface->crop.width = m_dest->crop.height;
+            m_displaySurface->crop.height = m_dest->crop.width;
             m_transform->process(m_dest, m_displaySurface);
             PERF_STOP(transform);
 
             //display it on screen
-            memcpy(&m_displaySurface->crop, &frame->crop, sizeof(VideoRect));
             status = vaPutSurface(*m_vaDisplay, (VASurfaceID)m_displaySurface->surface,
                 m_window, m_displaySurface->crop.x, m_displaySurface->crop.y, m_displaySurface->crop.width, m_displaySurface->crop.height, 0, 0, m_width, m_height,
                 NULL, 0, 0);
@@ -339,7 +344,7 @@ private:
 
         VppParamTransform transformParam;
         transformParam.size = sizeof(VppParamTransform);
-        transformParam.transform = VPP_TRANSFORM_ROT_180;
+        transformParam.transform = VPP_TRANSFORM_ROT_270;
         m_transform->setParameters(VppParamTypeTransform, &transformParam);
 
         return m_scaler->setNativeDisplay(nativeDisplay) == YAMI_SUCCESS
@@ -372,6 +377,7 @@ private:
         m_width = width;
         m_height = height;
     }
+
     SharedPtr<Display> m_display;
     SharedPtr<NativeDisplay> m_nativeDisplay;
     SharedPtr<VADisplay> m_vaDisplay;
