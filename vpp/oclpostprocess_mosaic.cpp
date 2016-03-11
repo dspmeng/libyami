@@ -82,8 +82,10 @@ OclPostProcessMosaic::process(const SharedPtr<VideoFrame>& src,
          || (CL_SUCCESS != clSetKernelArg(kernel, 3, sizeof(cl_mem), &bgImageMem[1]))
          || (CL_SUCCESS != clSetKernelArg(kernel, 4, sizeof(uint32_t), &dst->crop.x))
          || (CL_SUCCESS != clSetKernelArg(kernel, 5, sizeof(uint32_t), &dst->crop.y))
-         || (CL_SUCCESS != clSetKernelArg(kernel, 6, sizeof(uint32_t), &m_blockSize))
-         || (CL_SUCCESS != clSetKernelArg(kernel, 7, localMemSize, NULL))) {
+         || (CL_SUCCESS != clSetKernelArg(kernel, 6, sizeof(uint32_t), &dst->crop.width))
+         || (CL_SUCCESS != clSetKernelArg(kernel, 7, sizeof(uint32_t), &dst->crop.height))
+         || (CL_SUCCESS != clSetKernelArg(kernel, 8, sizeof(uint32_t), &m_blockSize))
+         || (CL_SUCCESS != clSetKernelArg(kernel, 9, localMemSize, NULL))) {
         ERROR("clSetKernelArg failed");
         return YAMI_FAIL;
     }
